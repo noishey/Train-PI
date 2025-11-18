@@ -12,40 +12,29 @@
 
 //==============================================================================
 TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor (TrainPIAudioProcessor& p)
-    : AudioProcessorEditor(&p),
-      audioProcessor(p)
+    : AudioProcessorEditor(&p), audioProcessor(p)
 {
-    
-    
-    setSize (400, 300);
+    setSize(400, 300);
     showWindow1();
-    setResizable(true, true);
 }
 
+TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor() {}
 
-TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor()
+void TrainPIAudioProcessorEditor::paint(juce::Graphics& g)
 {
-}
-
-//==============================================================================
-void TrainPIAudioProcessorEditor::paint (juce::Graphics& g)
-{
-    g.fillAll (juce::Colours::transparentBlack);
+    g.fillAll(juce::Colours::black);
 }
 
 void TrainPIAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
     if (currentWindow)
-            currentWindow->setBounds(getLocalBounds());
-    
+        currentWindow->setBounds(getLocalBounds());
 }
 
 void TrainPIAudioProcessorEditor::showWindow1()
 {
     currentWindow.reset();
-    currentWindow = std::make_unique<Window1>(*this);
+    currentWindow = new Window(*this, Window::Type::One);
     addAndMakeVisible(currentWindow.get());
     resized();
 }
@@ -53,7 +42,7 @@ void TrainPIAudioProcessorEditor::showWindow1()
 void TrainPIAudioProcessorEditor::showWindow2()
 {
     currentWindow.reset();
-    currentWindow = std::make_unique<Window2>(*this);
+    currentWindow = new Window(*this, Window::Type::Two);
     addAndMakeVisible(currentWindow.get());
     resized();
 }
