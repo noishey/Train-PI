@@ -1,0 +1,18 @@
+# JUCE / C++ build folders
+Builds/
+cmake-build-debug/
+cmake-build-release/
+*.a
+*.o
+*.so
+*.dll
+*.dylib
+*.exe
+
+# Xcode
+*.xcworkspace
+*.xcuserdatad
+DerivedData/
+
+# macOS
+.DS_Store
