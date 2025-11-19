@@ -9,40 +9,65 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-
 //==============================================================================
 TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor (TrainPIAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
-    setSize(400, 300);
-    showWindow1();
+    
+    // --- 1. Normal Button ---
+    normalButton.setDefaultImage        ("OffState.png");
+    normalButton.setDefaultHoveredImage ("HoveredOff.png");
+    normalButton.setClickedImage        ("Clicked.png");
+    normalButton.setToggledOnImage      ("OnState.png");
+    normalButton.setHoveredOnImage      ("HoveredOn.png");
+    addAndMakeVisible (normalButton);
+
+    // --- 2. Toggle Button ---
+    toggleButton.setDefaultImage        ("OffState.png");
+    toggleButton.setToggledOnImage      ("OnState.png");
+    toggleButton.setDefaultHoveredImage ("HoveredOff.png");
+    toggleButton.setHoveredOnImage      ("HoveredOn.png");
+    toggleButton.setClickedImage        ("Clicked.png");
+    toggleButton.setMouseUpCallback ([] (const juce::MouseEvent&, bool& state)
+    {
+        state = !state;
+        DBG ("Toggle Button is now " << (state ? "ON" : "OFF"));
+    });
+    addAndMakeVisible (toggleButton);
+
+    // --- 3. Switch Button ---
+    switchButton.setDefaultImage        ("OffState.png");
+    switchButton.setToggledOnImage      ("OnState.png");
+    switchButton.setDefaultHoveredImage ("HoveredOff.png");
+    switchButton.setHoveredOnImage      ("HoveredOn.png");
+    switchButton.setClickedImage        ("Clicked.png");
+    switchButton.setMouseUpCallback ([] (const juce::MouseEvent&, bool& state)
+    {
+        state = !state;
+        DBG ("Switch toggled: " << (state ? "ON" : "OFF"));
+    });
+    addAndMakeVisible (switchButton);
+
+    // --- 4. Unclickable Button ---
+    unclickableButton.setUnclickable (true);
+    unclickableButton.setUnclickableImage ("Unclickable.png");
+    addAndMakeVisible (unclickableButton);
+    
+    setSize(600, 400);
+
 }
 
 TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor() {}
 
 void TrainPIAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::black);
 }
 
 void TrainPIAudioProcessorEditor::resized()
 {
-    if (currentWindow)
-        currentWindow->setBounds(getLocalBounds());
+    normalButton.setBounds      (22, 17, 131, 36);
+    toggleButton.setBounds      (22, 82, 131, 36);
+    switchButton.setBounds      (22, 141, 131, 36);
+    unclickableButton.setBounds (22, 193, 131, 36);
 }
 
-void TrainPIAudioProcessorEditor::showWindow1()
-{
-    currentWindow.reset();
-    currentWindow = new Window(*this, Window::Type::One);
-    addAndMakeVisible(currentWindow.get());
-    resized();
-}
-
-void TrainPIAudioProcessorEditor::showWindow2()
-{
-    currentWindow.reset();
-    currentWindow = new Window(*this, Window::Type::Two);
-    addAndMakeVisible(currentWindow.get());
-    resized();
-}

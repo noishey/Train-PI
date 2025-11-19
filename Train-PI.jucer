@@ -3,9 +3,15 @@
 <JUCERPROJECT id="v5ehpC" name="Train-PI" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="LLZNGa" name="Train-PI">
+    <GROUP id="{4479909B-B71E-F761-A576-84EC47ACA16F}" name="Assets">
+      <FILE id="GJ6uFU" name="Clicked.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/Clicked.png"/>
+      <FILE id="tSBGx4" name="HoveredOff.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/HoveredOff.png"/>
+      <FILE id="avp67z" name="HoveredOn.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/HoveredOn.png"/>
+      <FILE id="tlSRFy" name="OffState.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/OffState.png"/>
+      <FILE id="ObReWc" name="OnState.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/OnState.png"/>
+      <FILE id="TKFnnr" name="Unclickable.png" compile="0" resource="1" file="../../PI-Training/PI-Learn-Plugin-Example/Assets/Unclickable.png"/>
+    </GROUP>
     <GROUP id="{587F86C6-76B0-E5EC-C7DA-258A42C0FC2C}" name="Source">
-      <FILE id="IPaeeT" name="DummyLabelExample.h" compile="0" resource="0"
-            file="Source/DummyLabelExample.h"/>
       <FILE id="HgfoRk" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="Topi0N" name="PluginProcessor.h" compile="0" resource="0"
