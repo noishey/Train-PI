@@ -4,8 +4,7 @@
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="LLZNGa" name="Train-PI">
     <GROUP id="{587F86C6-76B0-E5EC-C7DA-258A42C0FC2C}" name="Source">
-      <FILE id="IPaeeT" name="DummyLabelExample.h" compile="0" resource="0"
-            file="Source/DummyLabelExample.h"/>
+      <FILE id="xUJt1u" name="State.h" compile="0" resource="0" file="Source/State.h"/>
       <FILE id="HgfoRk" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="Topi0N" name="PluginProcessor.h" compile="0" resource="0"
