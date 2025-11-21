@@ -129,6 +129,18 @@ bool TrainPIAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
 }
 #endif
 
+void TrainPIAudioProcessor::sendNoteOn (int midiNote)
+{
+    juce::SpinLock::ScopedLockType locker (guiMidiLock); // lock GUI->audio buffer
+    guiMidiBuffer.addEvent(juce::MidiMessage::noteOn(1, midiNote, (juce::uint8)127), 0);
+}
+
+void TrainPIAudioProcessor::sendNoteOff (int midiNote)
+{
+    juce::SpinLock::ScopedLockType locker (guiMidiLock); // lock GUI->audio buffer
+    guiMidiBuffer.addEvent(juce::MidiMessage::noteOff(1, midiNote), 0);
+}
+
 void TrainPIAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
@@ -155,6 +167,31 @@ void TrainPIAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
         auto* channelData = buffer.getWritePointer (channel);
 
         // ..do something to the data...
+    }
+    midiMessages.addEvents(guiMidiBuffer, 0, -1, 0);
+    guiMidiBuffer.clear();
+    {
+            juce::SpinLock::ScopedLockType locker (guiMidiLock); // lock for a very short time
+            if (! guiMidiBuffer.isEmpty())
+            {
+                midiMessages.addEvents(guiMidiBuffer, 0, -1, 0);
+                guiMidiBuffer.clear();
+            }
+        }
+    for (auto meta : midiMessages)
+    {
+        const auto& m = meta.getMessage();
+
+        if (m.isNoteOn())
+        {
+            state.lastNoteNumber.store(m.getNoteNumber());
+            state.lastNoteOn.store(true);
+        }
+        else if (m.isNoteOff())
+        {
+            state.lastNoteNumber.store(m.getNoteNumber());
+            state.lastNoteOn.store(false);
+        }
     }
 }
 

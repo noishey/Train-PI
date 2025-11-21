@@ -13,6 +13,11 @@
 //==============================================================================
 /**
 */
+class MidiState{
+    public:
+    std::atomic<int> lastNoteNumber { -1 };
+    std::atomic<bool> lastNoteOn { false };
+};
 class TrainPIAudioProcessor  : public juce::AudioProcessor
 {
 public:
@@ -27,6 +32,10 @@ public:
    #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
+    MidiState state;
+    
+    void sendNoteOn (int midiNote);
+    void sendNoteOff (int midiNote);
 
     void processBlock (juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
 
@@ -55,5 +64,8 @@ public:
 
 private:
     //==============================================================================
+    juce::MidiBuffer guiMidiBuffer;
+    juce::SpinLock guiMidiLock;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrainPIAudioProcessor)
 };
