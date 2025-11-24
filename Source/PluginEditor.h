@@ -23,71 +23,12 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void showWindow1();
-    void showWindow2();
 
 private:
     TrainPIAudioProcessor& audioProcessor;
 
-    class Window : public juce::Component
-    {
-    public:
-        enum class Type { One, Two };
-
-        Window(TrainPIAudioProcessorEditor& e, Type t)
-            : editor(e), type(t)
-        {
-            addAndMakeVisible(btn);
-            applyTypeSettings();
-
-            btn.onClick = [&] {
-                switch (type)
-                {
-                    case Type::One: editor.showWindow2(); break;
-                    case Type::Two: editor.showWindow1(); break;
-                }
-            };
-        }
-
-        void paint(juce::Graphics& g) override
-        {
-            g.fillAll(bgColour);
-            g.setColour(juce::Colours::white);
-            g.drawText(title, getLocalBounds(), juce::Justification::centred);
-        }
-
-        void resized() override
-        {
-            btn.setBounds(210, 0, 140, 50);
-        }
-
-    private:
-        TrainPIAudioProcessorEditor& editor;
-        juce::TextButton btn;
-        Type type;
-        juce::Colour bgColour;
-        juce::String title;
-
-        void applyTypeSettings()
-        {
-            switch (type)
-            {
-                case Type::One:
-                    bgColour = juce::Colours::darkslategrey;
-                    title    = "Window 1";
-                    btn.setButtonText("Create Window 2");
-                    break;
-
-                case Type::Two:
-                    bgColour = juce::Colours::darkmagenta;
-                    title    = "Window 2";
-                    btn.setButtonText("Create Window 1");
-                    break;
-            }
-        }
-    };
-
-    EA::OwningPointer<juce::Component> currentWindow;
+    PI::InstantSVG svgIcon1;
+    Path svgIcon4 = Drawable::parseSVGPath(EASY_OBFUS("M18.4999 0C28.6024 0 37 8.62448 37 19C37 29.3941 28.5843 38 18.4818 38C8.36119 38 0 29.3941 0 19C0 8.62448 8.37938 0 18.4999 0ZM16.6681 6.68722C16.0696 6.68722 15.6524 7.11568 15.6524 7.71176V30.3628C15.6524 30.9402 16.0877 31.4059 16.6681 31.4059C17.2122 31.4059 17.6474 30.9402 17.6474 30.3628V7.71176C17.6474 7.13428 17.2303 6.68722 16.6681 6.68722ZM23.9955 9.38826C23.4514 9.38826 23.0161 9.85391 23.0161 10.4127V27.6804C23.0161 28.2392 23.4514 28.7049 23.9955 28.7049C24.5758 28.7049 25.0112 28.2578 25.0112 27.6804V10.4127C25.0112 9.85391 24.5758 9.38826 23.9955 9.38826ZM12.9862 11.7539C12.4239 11.7539 11.9705 12.201 11.9705 12.7784V25.3333C11.9705 25.8922 12.4239 26.3393 12.9862 26.3393C13.5303 26.3393 13.9656 25.8922 13.9656 25.3333V12.7784C13.9656 12.201 13.5303 11.7539 12.9862 11.7539ZM20.3318 13.2441C19.7695 13.2441 19.3342 13.6912 19.3342 14.25V23.8432C19.3342 24.402 19.7695 24.8491 20.3318 24.8491C20.894 24.8491 21.3294 24.4206 21.3294 23.8432V14.25C21.3294 13.6726 20.894 13.2441 20.3318 13.2441ZM27.6955 15.4608C27.1333 15.4608 26.6979 15.8893 26.6979 16.4667V21.6265C26.6979 22.204 27.1333 22.6323 27.6955 22.6323C28.2578 22.6323 28.6931 22.204 28.6931 21.6265V16.4667C28.6931 15.8893 28.2578 15.4608 27.6955 15.4608ZM9.28618 16.3921C8.74208 16.3921 8.28868 16.8393 8.28868 17.3981V20.6951C8.28868 21.254 8.74208 21.701 9.28618 21.701C9.84846 21.701 10.3019 21.254 10.3019 20.6951V17.3981C10.3019 16.8393 9.84846 16.3921 9.28618 16.3921Z"));
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrainPIAudioProcessorEditor)
 };

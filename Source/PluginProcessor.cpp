@@ -189,3 +189,5 @@ juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TrainPIAudioProcessor();
 }
+
+CREATE_BINARY_DATA_CONVERTER

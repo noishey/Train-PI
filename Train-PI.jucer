@@ -3,9 +3,11 @@
 <JUCERPROJECT id="v5ehpC" name="Train-PI" projectType="audioplug" useAppConfig="0"
               addUsingNamespaceToJuceHeader="0" jucerFormatVersion="1">
   <MAINGROUP id="LLZNGa" name="Train-PI">
+    <GROUP id="{163D5F4D-0A9D-C494-6CAD-BFC9AC3E1AFD}" name="Assets">
+      <FILE id="JJEhBJ" name="IconOpenPlugin.svg" compile="0" resource="1"
+            file="Assets/IconOpenPlugin.svg"/>
+    </GROUP>
     <GROUP id="{587F86C6-76B0-E5EC-C7DA-258A42C0FC2C}" name="Source">
-      <FILE id="IPaeeT" name="DummyLabelExample.h" compile="0" resource="0"
-            file="Source/DummyLabelExample.h"/>
       <FILE id="HgfoRk" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>
       <FILE id="Topi0N" name="PluginProcessor.h" compile="0" resource="0"

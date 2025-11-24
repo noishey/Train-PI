@@ -12,37 +12,28 @@
 
 //==============================================================================
 TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor (TrainPIAudioProcessor& p)
-    : AudioProcessorEditor(&p), audioProcessor(p)
+    : AudioProcessorEditor(&p), audioProcessor(p), svgIcon1("IconOpenPlugin.svg", true)
 {
-    setSize(400, 300);
-    showWindow1();
+    addAndMakeVisible(svgIcon1);
+    setSize(800, 600);
 }
 
 TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor() {}
 
 void TrainPIAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::black);
+    g.setColour(Colours::yellow);
+
+    AffineTransform t = AffineTransform::scale(
+        37.0f / svgIcon4.getBounds().getWidth(),
+        38.0f / svgIcon4.getBounds().getHeight()
+    ).translated(417, 112);
+
+    g.fillPath(svgIcon4, t);
 }
 
 void TrainPIAudioProcessorEditor::resized()
 {
-    if (currentWindow)
-        currentWindow->setBounds(getLocalBounds());
+    svgIcon1.setBounds(75, 111, 40, 40);
 }
 
-void TrainPIAudioProcessorEditor::showWindow1()
-{
-    currentWindow.reset();
-    currentWindow = new Window(*this, Window::Type::One);
-    addAndMakeVisible(currentWindow.get());
-    resized();
-}
-
-void TrainPIAudioProcessorEditor::showWindow2()
-{
-    currentWindow.reset();
-    currentWindow = new Window(*this, Window::Type::Two);
-    addAndMakeVisible(currentWindow.get());
-    resized();
-}
