@@ -15,11 +15,27 @@ TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor (TrainPIAudioProcessor&
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
     setSize(800, 600);
-    addAndMakeVisible (box1);
-    addAndMakeVisible (box2);
-    addAndMakeVisible (box3);
-    addAndMakeVisible (box4);
-    addAndMakeVisible (dropArea);
+    // Add Button
+    addAndMakeVisible(addButton);
+    addButton.onClick = [this]()
+    {
+        audioProcessor.counterValue++;
+        updateLabel();
+    };
+
+    // Subtract Button
+    addAndMakeVisible(subtractButton);
+    subtractButton.onClick = [this]()
+    {
+        audioProcessor.counterValue--;
+        updateLabel();
+    };
+
+    // Label
+    addAndMakeVisible(counterLabel);
+    counterLabel.setFont (juce::Font (24.0f, juce::Font::bold));
+    counterLabel.setJustificationType (juce::Justification::centred);
+    updateLabel();
 }
 
 TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor() {}
@@ -32,10 +48,12 @@ void TrainPIAudioProcessorEditor::paint(juce::Graphics& g)
 
 void TrainPIAudioProcessorEditor::resized()
 {
-    box1.setBounds(36, 30, 120, 30);
-    box2.setBounds(36, 90, 120, 30);
-    box3.setBounds(36, 150, 120, 30);
-    box4.setBounds(36, 210, 120, 30);
+    addButton.setBounds (20, 20, 100, 30);
+    subtractButton.setBounds (140, 20, 100, 30);
+    counterLabel.setBounds (100, 80, 200, 50);
+}
 
-    dropArea.setBounds(231, 60, 228, 139);
+void TrainPIAudioProcessorEditor::updateLabel()
+{
+    counterLabel.setText (juce::String (audioProcessor.counterValue), juce::dontSendNotification);
 }
