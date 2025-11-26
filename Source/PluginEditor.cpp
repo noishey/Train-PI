@@ -5,55 +5,33 @@
 
   ==============================================================================
 */
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-
-//==============================================================================
-TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor (TrainPIAudioProcessor& p)
+TrainPIAudioProcessorEditor::TrainPIAudioProcessorEditor(TrainPIAudioProcessor& p)
     : AudioProcessorEditor(&p), audioProcessor(p)
 {
-    setSize(800, 600);
-    // Add Button
-    addAndMakeVisible(addButton);
-    addButton.onClick = [this]()
-    {
-        audioProcessor.counterValue++;
-        updateLabel();
-    };
+    viewportComponent = std::make_unique<ViewportRowsComponent>();
+    addAndMakeVisible(*viewportComponent);
+    setSize(600, 400);
 
-    // Subtract Button
-    addAndMakeVisible(subtractButton);
-    subtractButton.onClick = [this]()
-    {
-        audioProcessor.counterValue--;
-        updateLabel();
-    };
-
-    // Label
-    addAndMakeVisible(counterLabel);
-    counterLabel.setFont (juce::Font (24.0f, juce::Font::bold));
-    counterLabel.setJustificationType (juce::Justification::centred);
-    updateLabel();
+    if (audioProcessor.savedState.getSize() > 0)
+        viewportComponent->loadStateFromMemoryBlock(audioProcessor.savedState);
 }
 
-TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor() {}
+TrainPIAudioProcessorEditor::~TrainPIAudioProcessorEditor()
+{
+    if (viewportComponent)
+        viewportComponent->saveStateToMemoryBlock(audioProcessor.savedState);
+}
 
 void TrainPIAudioProcessorEditor::paint(juce::Graphics& g)
 {
-    g.fillAll(juce::Colours::darkgrey);
-
+    g.fillAll(juce::Colours::black);
 }
 
 void TrainPIAudioProcessorEditor::resized()
 {
-    addButton.setBounds (20, 20, 100, 30);
-    subtractButton.setBounds (140, 20, 100, 30);
-    counterLabel.setBounds (100, 80, 200, 50);
-}
-
-void TrainPIAudioProcessorEditor::updateLabel()
-{
-    counterLabel.setText (juce::String (audioProcessor.counterValue), juce::dontSendNotification);
+    if (viewportComponent)
+        viewportComponent->setBounds(getLocalBounds());
 }
