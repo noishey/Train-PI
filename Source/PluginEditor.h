@@ -10,10 +10,41 @@
 
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
+#include <ea_data_structures/Pointers/OwningPointer.h>
 
 //==============================================================================
 /**
 */
+struct Tab1Component : public juce::Component
+{
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colours::darkgrey);
+        g.setColour(juce::Colours::white);
+        g.drawFittedText("TAB 1", getLocalBounds(), juce::Justification::centred, 1);
+    }
+};
+
+struct Tab2Component : public juce::Component
+{
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colours::darkgreen);
+        g.setColour(juce::Colours::white);
+        g.drawFittedText("TAB 2", getLocalBounds(), juce::Justification::centred, 1);
+    }
+};
+
+struct Tab3Component : public juce::Component
+{
+    void paint(juce::Graphics& g) override
+    {
+        g.fillAll(juce::Colours::darkred);
+        g.setColour(juce::Colours::white);
+        g.drawFittedText("TAB 3", getLocalBounds(), juce::Justification::centred, 1);
+    }
+};
+
 class TrainPIAudioProcessorEditor  : public juce::AudioProcessorEditor
 {
 public:
@@ -23,71 +54,17 @@ public:
     void paint (juce::Graphics&) override;
     void resized() override;
 
-    void showWindow1();
-    void showWindow2();
-
 private:
     TrainPIAudioProcessor& audioProcessor;
+    juce::TextButton tab1Button { "TAB 1" };
+    juce::TextButton tab2Button { "TAB 2" };
+    juce::TextButton tab3Button { "TAB 3" };
 
-    class Window : public juce::Component
-    {
-    public:
-        enum class Type { One, Two };
+    juce::Rectangle<int> tabBounds;
 
-        Window(TrainPIAudioProcessorEditor& e, Type t)
-            : editor(e), type(t)
-        {
-            addAndMakeVisible(btn);
-            applyTypeSettings();
+    EA::OwningPointer<juce::Component> window;
 
-            btn.onClick = [&] {
-                switch (type)
-                {
-                    case Type::One: editor.showWindow2(); break;
-                    case Type::Two: editor.showWindow1(); break;
-                }
-            };
-        }
-
-        void paint(juce::Graphics& g) override
-        {
-            g.fillAll(bgColour);
-            g.setColour(juce::Colours::white);
-            g.drawText(title, getLocalBounds(), juce::Justification::centred);
-        }
-
-        void resized() override
-        {
-            btn.setBounds(210, 0, 140, 50);
-        }
-
-    private:
-        TrainPIAudioProcessorEditor& editor;
-        juce::TextButton btn;
-        Type type;
-        juce::Colour bgColour;
-        juce::String title;
-
-        void applyTypeSettings()
-        {
-            switch (type)
-            {
-                case Type::One:
-                    bgColour = juce::Colours::darkslategrey;
-                    title    = "Window 1";
-                    btn.setButtonText("Create Window 2");
-                    break;
-
-                case Type::Two:
-                    bgColour = juce::Colours::darkmagenta;
-                    title    = "Window 2";
-                    btn.setButtonText("Create Window 1");
-                    break;
-            }
-        }
-    };
-
-    EA::OwningPointer<juce::Component> currentWindow;
+    void switchToTab(int index);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (TrainPIAudioProcessorEditor)
 };
