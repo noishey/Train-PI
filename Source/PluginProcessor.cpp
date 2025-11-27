@@ -1,15 +1,12 @@
-/*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
-*/
-
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
-//==============================================================================
+struct SimpleSynthSound : public juce::SynthesiserSound
+{
+    bool appliesToNote (int /*midiNoteNumber*/) override        { return true; }
+    bool appliesToChannel (int /*midiChannel*/) override       { return true; }
+};
+
 TrainPIAudioProcessor::TrainPIAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
      : AudioProcessor (BusesProperties()
@@ -22,13 +19,16 @@ TrainPIAudioProcessor::TrainPIAudioProcessor()
                        )
 #endif
 {
+    for (int i = 0; i < 8; ++i)
+        synth.addVoice(new OscillatorVoice());
+    synth.addSound(new SimpleSynthSound());
+    createSamplerFromGeneratedBuffer(44100.0);
 }
 
 TrainPIAudioProcessor::~TrainPIAudioProcessor()
 {
 }
 
-//==============================================================================
 const juce::String TrainPIAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -68,8 +68,7 @@ double TrainPIAudioProcessor::getTailLengthSeconds() const
 
 int TrainPIAudioProcessor::getNumPrograms()
 {
-    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    return 1;
 }
 
 int TrainPIAudioProcessor::getCurrentProgram()
@@ -79,28 +78,33 @@ int TrainPIAudioProcessor::getCurrentProgram()
 
 void TrainPIAudioProcessor::setCurrentProgram (int index)
 {
+    juce::ignoreUnused(index);
 }
 
 const juce::String TrainPIAudioProcessor::getProgramName (int index)
 {
+    juce::ignoreUnused(index);
     return {};
 }
 
 void TrainPIAudioProcessor::changeProgramName (int index, const juce::String& newName)
 {
+    juce::ignoreUnused(index, newName);
 }
 
-//==============================================================================
 void TrainPIAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    // Use this method as the place to do any pre-playback
-    // initialisation that you need..
+    synth.setCurrentPlaybackSampleRate(sampleRate);
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+        if (auto* v = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
+            v->setSampleRate(sampleRate);
+
+    samplerSynth.setCurrentPlaybackSampleRate(sampleRate);
+    createSamplerFromGeneratedBuffer(sampleRate);
 }
 
 void TrainPIAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -110,15 +114,10 @@ bool TrainPIAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) 
     juce::ignoreUnused (layouts);
     return true;
   #else
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != juce::AudioChannelSet::mono()
      && layouts.getMainOutputChannelSet() != juce::AudioChannelSet::stereo())
         return false;
 
-    // This checks if the input layout matches the output layout
    #if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
@@ -135,56 +134,117 @@ void TrainPIAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juce
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
 
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    for (int channel = 0; channel < totalNumInputChannels; ++channel)
+    juce::AudioPlayHead::CurrentPositionInfo posInfo;
+    if (getPlayHead() != nullptr && getPlayHead()->getCurrentPosition(posInfo))
     {
-        auto* channelData = buffer.getWritePointer (channel);
-
-        // ..do something to the data...
+        const juce::ScopedLock sl(playHeadLock);
+        lastPlayHeadInfo.bpm = posInfo.bpm;
+        lastPlayHeadInfo.ppqPosition = posInfo.ppqPosition;
+        lastPlayHeadInfo.timeSigNumerator = posInfo.timeSigNumerator;
+        lastPlayHeadInfo.timeSigDenominator = posInfo.timeSigDenominator;
+        lastPlayHeadInfo.isPlaying = posInfo.isPlaying;
     }
+
+    keyboardState.processNextMidiBuffer(midiMessages, 0, buffer.getNumSamples(), true);
+
+    synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
+    samplerSynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
-//==============================================================================
-bool TrainPIAudioProcessor::hasEditor() const
-{
-    return true; // (change this to false if you choose to not supply an editor)
-}
-
-juce::AudioProcessorEditor* TrainPIAudioProcessor::createEditor()
-{
-    return new TrainPIAudioProcessorEditor (*this);
-}
-
-//==============================================================================
 void TrainPIAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    juce::ignoreUnused(destData);
 }
 
 void TrainPIAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    juce::ignoreUnused(data, sizeInBytes);
 }
 
-//==============================================================================
-// This creates new instances of the plugin..
+TrainPIAudioProcessor::PlayHeadInfo TrainPIAudioProcessor::getPlayHeadInfo()
+{
+    const juce::ScopedLock sl(playHeadLock);
+    return lastPlayHeadInfo;
+}
+
+void TrainPIAudioProcessor::createSamplerFromGeneratedBuffer(double sampleRate)
+{
+    samplerSynth.clearSounds();
+    samplerSynth.clearVoices();
+
+    for (int i = 0; i < 8; ++i)
+        samplerSynth.addVoice(new juce::SamplerVoice());
+
+    const int length = (int) std::round(sampleRate); // 1 second
+    juce::AudioBuffer<float> buffer(1, length);
+    buffer.clear();
+
+    for (int i = 0; i < length; ++i)
+    {
+        float t = (float)i / (float)length;
+        float value = std::sin(juce::MathConstants<float>::twoPi * 440.0f * t) * std::exp(-3.0f * t);
+        buffer.setSample(0, i, value);
+    }
+
+    // Write buffer into an in-memory WAV
+    juce::WavAudioFormat wavFormat;
+    juce::MemoryOutputStream memOut(true);
+
+    {
+        std::unique_ptr<juce::AudioFormatWriter> writer (
+            wavFormat.createWriterFor(&memOut,
+                                      sampleRate,
+                                      (unsigned int) buffer.getNumChannels(),
+                                      16,
+                                      {}, 0));
+
+        if (writer == nullptr)
+            return;
+
+        writer->writeFromAudioSampleBuffer(buffer, 0, buffer.getNumSamples());
+        writer.reset(); // flush and finalize WAV into memOut
+    }
+
+    // Make MemoryInputStream own its copy of the data (avoid referencing memOut's internal buffer)
+    auto* memIn = new juce::MemoryInputStream(memOut.getData(), memOut.getDataSize(), true);
+
+    // createReaderFor takes a raw InputStream*, so hand memIn to it and tell reader to delete the stream
+    auto* readerRaw = wavFormat.createReaderFor(memIn, true);
+
+    if (readerRaw != nullptr)
+    {
+        std::unique_ptr<juce::AudioFormatReader> reader(readerRaw);
+
+        juce::BigInteger allNotes;
+        allNotes.setRange(0, 128, true);
+
+        auto* sound = new juce::SamplerSound("gen", *reader, allNotes, 60, 0.0, 0.0, 10.0);
+        samplerSynth.addSound(sound);
+    }
+}
+
+void TrainPIAudioProcessor::setSynthWaveform (int newWaveform) noexcept
+{
+    for (int i = 0; i < synth.getNumVoices(); ++i)
+    {
+        if (auto* v = dynamic_cast<OscillatorVoice*>(synth.getVoice(i)))
+            v->setWaveform(newWaveform);
+    }
+}
+
+bool TrainPIAudioProcessor::hasEditor() const
+{
+    return true;
+}
+
+juce::AudioProcessorEditor* TrainPIAudioProcessor::createEditor()
+{
+    return new TrainPIAudioProcessorEditor(*this);
+}
+
 juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new TrainPIAudioProcessor();
